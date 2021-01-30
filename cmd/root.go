@@ -28,6 +28,8 @@ func init() {
 }
 
 var rootCMD = &cobra.Command{
+	Use:   "icinga2-discord-notifications",
+	Short: "Support for Discord notifications for Icinga2.",
 	Run: func(cmd *cobra.Command, args []string) {
 		event := notification.Event{
 			HostName:          cmd.Flags().Lookup("host-name").Value.String(),
