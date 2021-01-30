@@ -1,4 +1,8 @@
 # icinga2-discord-notifications
+[![Go Report Card](https://goreportcard.com/badge/github.com/TheFireMike/icinga2-discord-notifications)](https://goreportcard.com/report/github.com/TheFireMike/icinga2-discord-notifications)
+[![GitHub license](https://img.shields.io/badge/license-BSD-blue.svg)](https://github.com/TheFireMike/icinga2-discord-notifications/blob/main/LICENSE)
+[![GitHub code style](https://img.shields.io/badge/code%20style-uber--go-brightgreen)](https://github.com/uber-go/guide/blob/master/style.md)
+[![GoDoc doc](https://img.shields.io/badge/godoc-reference-blue)](https://godoc.org/github.com/TheFireMike/icinga2-discord-notifications)
 ```
 Support for Discord notifications for Icinga2.
 
