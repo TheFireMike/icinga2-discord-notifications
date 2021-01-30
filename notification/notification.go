@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+//Event includes all information about the event which should be reported.
 type Event struct {
 	HostName          string
 	ServiceName       string
@@ -23,6 +24,7 @@ type output struct {
 	Content string `json:"content"`
 }
 
+//SendNotification sends the event to the specified discord webhook.
 func SendNotification(event Event, webhook string) {
 	var output output
 
