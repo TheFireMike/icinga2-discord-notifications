@@ -61,9 +61,7 @@ func SendNotification(event Event, webhook string) {
 		log.Fatal().Err(err).Msg("marshalling output failed")
 	}
 
-	client := resty.New()
-
-	resp, err := client.R().
+	resp, err := resty.New().R().
 		SetHeader("Content-type", "application/json").
 		SetBody(string(outputJSON)).
 		Post(webhook)
