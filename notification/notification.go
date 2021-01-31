@@ -5,19 +5,17 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
-	"strconv"
-	"time"
 )
 
 //Event includes all information about the event which should be reported.
 type Event struct {
-	HostName          string
-	ServiceName       string
-	HostState         string
-	ServiceState      string
-	HostLastChange    string
-	ServiceLastChange string
-	ServiceOutput     string
+	HostName         string
+	ServiceName      string
+	HostState        string
+	ServiceState     string
+	HostLastState    string
+	ServiceLastState string
+	ServiceOutput    string
 }
 
 type output struct {
@@ -29,25 +27,29 @@ func SendNotification(event Event, webhook string) {
 	var output output
 
 	if event.ServiceState != "" {
-		timestamp, err := strconv.Atoi(event.ServiceLastChange)
-		if err != nil {
-			timestamp = int(time.Now().Unix())
+		if event.ServiceState == event.ServiceLastState || event.ServiceLastState == "" {
+			output.Content += "INFO: "
+		} else if event.ServiceState != "OK" {
+			output.Content += "PROBLEM: "
+		} else if event.ServiceState == "OK" {
+			output.Content += "RECOVER: "
 		}
 
-		output.Content = fmt.Sprintf("%s: %s on %s is %s! Output:\n%s",
-			time.Unix(int64(timestamp), 0).Format(time.RFC822),
+		output.Content += fmt.Sprintf("%s on %s is %s! Output:\n%s",
 			event.ServiceName,
 			event.HostName,
 			event.ServiceState,
 			event.ServiceOutput)
 	} else if event.HostState != "" {
-		timestamp, err := strconv.Atoi(event.HostLastChange)
-		if err != nil {
-			timestamp = int(time.Now().Unix())
+		if event.HostState == event.HostLastState || event.HostLastState == "" {
+			output.Content += "INFO: "
+		} else if event.HostState != "UP" {
+			output.Content += "PROBLEM: "
+		} else if event.HostState == "UP" {
+			output.Content += "RECOVER: "
 		}
 
-		output.Content = fmt.Sprintf("%s: Host %s is %s!",
-			time.Unix(int64(timestamp), 0).Format(time.RFC822),
+		output.Content += fmt.Sprintf("Host %s is %s!",
 			event.HostName,
 			event.HostState)
 	} else {
