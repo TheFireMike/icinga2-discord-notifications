@@ -48,7 +48,7 @@ func SendNotification(event Event, webhook string) {
 
 		output.Content = fmt.Sprintf("%s: Host %s is %s!",
 			time.Unix(int64(timestamp), 0).Format(time.RFC822),
-			event.ServiceName,
+			event.HostName,
 			event.HostState)
 	} else {
 		log.Fatal().Msg("unknown event type")
