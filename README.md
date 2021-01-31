@@ -33,7 +33,7 @@ object NotificationCommand "discord-webhook" {
         "--service-name" = "$service.name$"
         "--service-output" = "$service.output$"
         "--service-state" = "$service.state$"
-        "--webhook" = <YOUR GITHUB WEBHOOK>
+        "--webhook" = <YOUR DISCORD WEBHOOK>
     }
 }
 ```
