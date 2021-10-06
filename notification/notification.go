@@ -5,6 +5,13 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
+	"strconv"
+)
+
+const (
+	ColorRed   = "15158332"
+	ColorGreen = "3066993"
+	ColorGrey  = "9807270"
 )
 
 //Event includes all information about the event which should be reported.
@@ -19,34 +26,62 @@ type Event struct {
 }
 
 type output struct {
-	Content string `json:"content"`
+	Content string  `json:"content"`
+	Embeds  []embed `json:"embeds"`
+}
+
+type embed struct {
+	Title       string `json:"title"`
+	Color       string `json:"color"`
+	Description string `json:"description"`
 }
 
 //SendNotification sends the event to the specified discord webhook.
 func SendNotification(event Event, webhook string) {
+	if event.HostName == "" {
+		log.Fatal().Msg("host name is missing")
+	}
+
 	var output output
 
 	if event.ServiceState != "" {
-		if event.ServiceState == event.ServiceLastState || event.ServiceLastState == "" {
-			output.Content += "INFO: "
-		} else if event.ServiceState != "OK" {
-			output.Content += "PROBLEM: "
-		} else if event.ServiceState == "OK" {
-			output.Content += "RECOVER: "
+		if event.ServiceName == "" {
+			log.Fatal().Msg("service name is missing")
 		}
 
-		output.Content += fmt.Sprintf("%s on %s is %s! Output:\n%s",
+		embed := embed{
+			Title: "Service Output",
+		}
+
+		if event.ServiceState == event.ServiceLastState || event.ServiceLastState == "" {
+			output.Content += "**INFO**: "
+			embed.Color = ColorGrey
+		} else if event.ServiceState != "OK" {
+			output.Content += "**PROBLEM**: "
+			embed.Color = ColorRed
+		} else if event.ServiceState == "OK" {
+			output.Content += "**RECOVER**: "
+			embed.Color = ColorGreen
+		}
+
+		output.Content += fmt.Sprintf("%s on %s is %s!",
 			event.ServiceName,
 			event.HostName,
-			event.ServiceState,
-			event.ServiceOutput)
+			event.ServiceState)
+
+		if event.ServiceOutput != "" {
+			// the backticks put the service output in a code block
+			embed.Description = "```" + event.ServiceOutput + "```"
+
+			output.Embeds = append(output.Embeds, embed)
+		}
 	} else if event.HostState != "" {
 		if event.HostState == event.HostLastState || event.HostLastState == "" {
-			output.Content += "INFO: "
+			output.Content += "**INFO**: "
 		} else if event.HostState != "UP" {
-			output.Content += "PROBLEM: "
+			output.Content += "**PROBLEM**: "
 		} else if event.HostState == "UP" {
-			output.Content += "RECOVER: "
+			output.Content += "**RECOVER**: "
 		}
 
 		output.Content += fmt.Sprintf("Host %s is %s!",
@@ -65,12 +100,11 @@ func SendNotification(event Event, webhook string) {
 		SetHeader("Content-type", "application/json").
 		SetBody(string(outputJSON)).
 		Post(webhook)
-
 	if err != nil {
-		log.Fatal().Err(err).Msg("sending failed")
+		log.Fatal().Err(err).Msg("sending message failed")
 	}
 
 	if resp.StatusCode() != 204 {
-		log.Fatal().Msg(string(resp.Body()))
+		log.Fatal().Str("response", string(resp.Body())).Str("status_code", strconv.Itoa(resp.StatusCode())).Msg("sending message failed")
 	}
 }

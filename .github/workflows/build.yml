@@ -26,8 +26,5 @@ jobs:
               dep ensure
           fi
 
-      - name: Generate configs
-        run: go generate
-
       - name: Build project
         run: go build -v .
