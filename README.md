@@ -26,7 +26,7 @@ object NotificationCommand "discord-webhook" {
     import "plugin-notification-command"
     command = [ "/usr/lib/nagios/icinga2-discord-notifications" ]
     arguments += {
-        "--host-last-state" = "$host.last-state$"
+        "--host-last-state" = "$host.last_state$"
         "--host-name" = "$host.name$"
         "--host-state" = "$host.state$"
         "--service-last-state" = "$service.last_state$"
