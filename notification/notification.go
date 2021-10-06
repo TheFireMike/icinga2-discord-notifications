@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	ColorRed   = "15158332"
-	ColorGreen = "3066993"
-	ColorGrey  = "9807270"
+	colorRed   = "15158332"
+	colorGreen = "3066993"
+	colorGrey  = "9807270"
 )
 
 //Event includes all information about the event which should be reported.
@@ -55,13 +55,13 @@ func SendNotification(event Event, webhook string) {
 
 		if event.ServiceState == event.ServiceLastState || event.ServiceLastState == "" {
 			output.Content += "**INFO**: "
-			embed.Color = ColorGrey
+			embed.Color = colorGrey
 		} else if event.ServiceState != "OK" {
 			output.Content += "**PROBLEM**: "
-			embed.Color = ColorRed
+			embed.Color = colorRed
 		} else if event.ServiceState == "OK" {
 			output.Content += "**RECOVER**: "
-			embed.Color = ColorGreen
+			embed.Color = colorGreen
 		}
 
 		output.Content += fmt.Sprintf("%s on %s is %s!",
