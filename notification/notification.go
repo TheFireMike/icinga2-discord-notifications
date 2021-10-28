@@ -9,20 +9,24 @@ import (
 )
 
 const (
-	colorRed   = "15158332"
-	colorGreen = "3066993"
-	colorGrey  = "9807270"
+	colorRed    = "15158332"
+	colorOrange = "15105570"
+	colorGreen  = "3066993"
+	colorPurple = "10181046"
+	colorGrey   = "9807270"
 )
 
 //Event includes all information about the event which should be reported.
 type Event struct {
-	HostName         string
-	ServiceName      string
-	HostState        string
-	ServiceState     string
-	HostLastState    string
-	ServiceLastState string
-	ServiceOutput    string
+	NotificationType    string
+	NotificationAuthor  string
+	NotificationComment string
+	HostName            string
+	HostState           string
+	HostOutput          string
+	ServiceName         string
+	ServiceState        string
+	ServiceOutput       string
 }
 
 type output struct {
@@ -38,10 +42,6 @@ type embed struct {
 
 //SendNotification sends the event to the specified discord webhook.
 func SendNotification(event Event, webhook string) {
-	if event.HostName == "" {
-		log.Fatal().Msg("host name is missing")
-	}
-
 	var output output
 
 	if event.ServiceState != "" {
@@ -49,44 +49,58 @@ func SendNotification(event Event, webhook string) {
 			log.Fatal().Msg("service name is missing")
 		}
 
-		embed := embed{
-			Title: "Service Output",
-		}
-
-		if event.ServiceState == event.ServiceLastState || event.ServiceLastState == "" {
-			output.Content += "**INFO**: "
-			embed.Color = colorGrey
-		} else if event.ServiceState != "OK" {
-			output.Content += "**PROBLEM**: "
-			embed.Color = colorRed
-		} else if event.ServiceState == "OK" {
-			output.Content += "**RECOVER**: "
-			embed.Color = colorGreen
-		}
-
-		output.Content += fmt.Sprintf("%s on %s is %s!",
+		output.Content = fmt.Sprintf("**%s**: %s on %s is %s!",
+			event.NotificationType,
 			event.ServiceName,
 			event.HostName,
 			event.ServiceState)
 
-		if event.ServiceOutput != "" {
-			// the backticks put the service output in a code block
-			embed.Description = "```" + event.ServiceOutput + "```"
-
-			output.Embeds = append(output.Embeds, embed)
+		if event.NotificationType == "CUSTOM" {
+			if event.NotificationComment != "" {
+				title := "Comment"
+				if event.NotificationAuthor != "" {
+					title += fmt.Sprintf(" by %s", event.NotificationAuthor)
+				}
+				output.Embeds = append(output.Embeds, embed{
+					Title:       title,
+					Color:       colorGrey,
+					Description: event.NotificationComment,
+				})
+			}
+		} else if event.ServiceOutput != "" {
+			output.Embeds = append(output.Embeds, embed{
+				Title: "Service Output",
+				Color: getColor(event.ServiceState),
+				// the backticks put the service output in a code block
+				Description: fmt.Sprintf("```%s```", event.ServiceOutput),
+			})
 		}
 	} else if event.HostState != "" {
-		if event.HostState == event.HostLastState || event.HostLastState == "" {
-			output.Content += "**INFO**: "
-		} else if event.HostState != "UP" {
-			output.Content += "**PROBLEM**: "
-		} else if event.HostState == "UP" {
-			output.Content += "**RECOVER**: "
-		}
-
-		output.Content += fmt.Sprintf("Host %s is %s!",
+		output.Content = fmt.Sprintf("**%s**: Host %s is %s!",
+			event.NotificationType,
 			event.HostName,
 			event.HostState)
+
+		if event.NotificationType == "CUSTOM" {
+			if event.NotificationComment != "" {
+				title := "Comment"
+				if event.NotificationAuthor != "" {
+					title += fmt.Sprintf(" by %s", event.NotificationAuthor)
+				}
+				output.Embeds = append(output.Embeds, embed{
+					Title:       title,
+					Color:       colorGrey,
+					Description: event.NotificationComment,
+				})
+			}
+		} else if event.HostOutput != "" {
+			output.Embeds = append(output.Embeds, embed{
+				Title: "Host Output",
+				Color: getColor(event.HostState),
+				// the backticks put the host output in a code block
+				Description: fmt.Sprintf("```%s```", event.HostOutput),
+			})
+		}
 	} else {
 		log.Fatal().Msg("unknown event type")
 	}
@@ -106,5 +120,20 @@ func SendNotification(event Event, webhook string) {
 
 	if resp.StatusCode() != 204 {
 		log.Fatal().Str("response", string(resp.Body())).Str("status_code", strconv.Itoa(resp.StatusCode())).Msg("sending message failed")
+	}
+}
+
+func getColor(state string) string {
+	switch state {
+	case "UP", "OK":
+		return colorGreen
+	case "WARNING":
+		return colorOrange
+	case "DOWN", "CRITICAL":
+		return colorRed
+	case "UNKNOWN":
+		return colorPurple
+	default:
+		return colorGrey
 	}
 }
