@@ -48,59 +48,9 @@ func SendNotification(event Event, webhook string) {
 		if event.ServiceName == "" {
 			log.Fatal().Msg("service name is missing")
 		}
-
-		output.Content = fmt.Sprintf("**%s**: %s on %s is %s!",
-			event.NotificationType,
-			event.ServiceName,
-			event.HostName,
-			event.ServiceState)
-
-		if event.NotificationType == "CUSTOM" {
-			if event.NotificationComment != "" {
-				title := "Comment"
-				if event.NotificationAuthor != "" {
-					title += fmt.Sprintf(" by %s", event.NotificationAuthor)
-				}
-				output.Embeds = append(output.Embeds, embed{
-					Title:       title,
-					Color:       colorGrey,
-					Description: event.NotificationComment,
-				})
-			}
-		} else if event.ServiceOutput != "" {
-			output.Embeds = append(output.Embeds, embed{
-				Title: "Service Output",
-				Color: getColor(event.ServiceState),
-				// the backticks put the service output in a code block
-				Description: fmt.Sprintf("```%s```", event.ServiceOutput),
-			})
-		}
+		output = getServiceOutput(event)
 	} else if event.HostState != "" {
-		output.Content = fmt.Sprintf("**%s**: Host %s is %s!",
-			event.NotificationType,
-			event.HostName,
-			event.HostState)
-
-		if event.NotificationType == "CUSTOM" {
-			if event.NotificationComment != "" {
-				title := "Comment"
-				if event.NotificationAuthor != "" {
-					title += fmt.Sprintf(" by %s", event.NotificationAuthor)
-				}
-				output.Embeds = append(output.Embeds, embed{
-					Title:       title,
-					Color:       colorGrey,
-					Description: event.NotificationComment,
-				})
-			}
-		} else if event.HostOutput != "" {
-			output.Embeds = append(output.Embeds, embed{
-				Title: "Host Output",
-				Color: getColor(event.HostState),
-				// the backticks put the host output in a code block
-				Description: fmt.Sprintf("```%s```", event.HostOutput),
-			})
-		}
+		output = getHostOutput(event)
 	} else {
 		log.Fatal().Msg("unknown event type")
 	}
@@ -120,6 +70,68 @@ func SendNotification(event Event, webhook string) {
 
 	if resp.StatusCode() != 204 {
 		log.Fatal().Str("response", string(resp.Body())).Str("status_code", strconv.Itoa(resp.StatusCode())).Msg("sending message failed")
+	}
+}
+
+func getServiceOutput(event Event) output {
+	var output output
+
+	output.Content = fmt.Sprintf("**%s**: %s on %s is %s!",
+		event.NotificationType,
+		event.ServiceName,
+		event.HostName,
+		event.ServiceState)
+
+	if event.NotificationType == "CUSTOM" {
+		if event.NotificationComment != "" {
+			output.Embeds = append(output.Embeds, getComment(event))
+		}
+	} else if event.ServiceOutput != "" {
+		output.Embeds = append(output.Embeds, embed{
+			Title: "Service Output",
+			Color: getColor(event.ServiceState),
+			// the backticks put the service output in a code block
+			Description: fmt.Sprintf("```%s```", event.ServiceOutput),
+		})
+	}
+
+	return output
+}
+
+func getHostOutput(event Event) output {
+	var output output
+
+	output.Content = fmt.Sprintf("**%s**: Host %s is %s!",
+		event.NotificationType,
+		event.HostName,
+		event.HostState)
+
+	if event.NotificationType == "CUSTOM" {
+		if event.NotificationComment != "" {
+			output.Embeds = append(output.Embeds, getComment(event))
+		}
+	} else if event.HostOutput != "" {
+		output.Embeds = append(output.Embeds, embed{
+			Title: "Host Output",
+			Color: getColor(event.HostState),
+			// the backticks put the host output in a code block
+			Description: fmt.Sprintf("```%s```", event.HostOutput),
+		})
+	}
+
+	return output
+}
+
+func getComment(event Event) embed {
+	title := "Comment"
+	if event.NotificationAuthor != "" {
+		title += fmt.Sprintf(" by %s", event.NotificationAuthor)
+	}
+
+	return embed{
+		Title:       title,
+		Color:       colorGrey,
+		Description: event.NotificationComment,
 	}
 }
 

@@ -22,11 +22,15 @@ Flags:
       --service-state string          service state
       --webhook string                webhook URL
 ```
+
+## Installation
+You can download the latest release under the `Releases` tab or build it yourself with `go build`.
+
 Use it as a notification plugin command in Icinga. Sample configuration:
 ```
 object NotificationCommand "discord-webhook" {
     import "plugin-notification-command"
-    command = [ "/usr/lib/nagios/icinga2-discord-notifications" ]
+    command = [ PluginDir + "/icinga2-discord-notifications" ]
     arguments += {
         "--host-name" = "$host.display_name$"
         "--host-output" = "$host.output$"
