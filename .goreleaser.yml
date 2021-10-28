@@ -1,0 +1,15 @@
+# .goreleaser.yml
+
+builds:
+  - id: "icinga2-discord-notifications"
+
+    main: ./main.go
+    binary: icinga2-discord-notifications
+
+archives:
+  - builds:
+      - icinga2-discord-notifications
+
+    replacements:
+      amd64: 64-bit
+      darwin: macOS
