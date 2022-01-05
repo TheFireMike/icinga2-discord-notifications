@@ -82,7 +82,7 @@ func getServiceOutput(event Event) output {
 		event.HostName,
 		event.ServiceState)
 
-	if event.NotificationType == "CUSTOM" {
+	if event.NotificationType == "CUSTOM" || event.NotificationType == "ACKNOWLEDGEMENT" {
 		if event.NotificationComment != "" {
 			output.Embeds = append(output.Embeds, getComment(event))
 		}
@@ -106,7 +106,7 @@ func getHostOutput(event Event) output {
 		event.HostName,
 		event.HostState)
 
-	if event.NotificationType == "CUSTOM" {
+	if event.NotificationType == "CUSTOM" || event.NotificationType == "ACKNOWLEDGEMENT" {
 		if event.NotificationComment != "" {
 			output.Embeds = append(output.Embeds, getComment(event))
 		}
