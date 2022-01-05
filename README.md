@@ -30,7 +30,7 @@ Use it as a notification plugin command in Icinga. Sample configuration:
 ```
 object NotificationCommand "discord-webhook" {
     import "plugin-notification-command"
-    command = [ PluginDir + "/icinga2-discord-notifications" ]
+    command = [ ConfigDir + "/scripts/icinga2-discord-notifications" ]
     arguments += {
         "--host-name" = "$host.display_name$"
         "--host-output" = "$host.output$"
